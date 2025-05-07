@@ -1,0 +1,23 @@
+# https://github.com/CYB3RKING/RDP
+
+name: Window RDP
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+      - name: Install ngrok
+        run: choco install ngrok
+      - name: Auth
+        run: ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+      - name: Enable TS
+        run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+      - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+      - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+      - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "@cyb3rking" -Force)
+      - name: Create Tunnel
+        run: ngrok tcp 3389
