@@ -1,8 +1,10 @@
 # https://github.com/CYB3RKING/RDP
+# Get endpoints from https://dashboard.ngrok.com/endpoints
+# Connect using Windows app https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps?tabs=windows-avd%2Cwindows-w365%2Cwindows-devbox%2Cmacos-rds%2Cmacos-pc&pivots=remote-desktop-services
 
 name: Window RDP
 
-on: [push, workflow_dispatch]
+on: workflow_dispatch
 
 jobs:
   build:
