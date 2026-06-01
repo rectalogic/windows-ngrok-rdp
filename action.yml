@@ -1,0 +1,54 @@
+# https://github.com/CYB3RKING/RDP
+# Get endpoints from https://dashboard.ngrok.com/endpoints
+# Connect using Windows app https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps?tabs=windows-avd%2Cwindows-w365%2Cwindows-devbox%2Cmacos-rds%2Cmacos-pc&pivots=remote-desktop-services
+
+# Usage: configure repository secret NGROK_AUTH_TOKEN
+#
+# jobs:
+#   myjob:
+#     runs-on: windows-latest
+#     steps:
+#       - uses: rectalogic/windows-ngrok-rdp
+#         with:
+#           ngrok-auth-token: ${{ secrets.NGROK_AUTH_TOKEN }}
+
+name: Window RDP
+description: Windows RDP remote access
+inputs:
+  ngrok-auth-token:
+    description: "ngrok authentication token"
+    required: true
+  ngrok-port:
+    description: "ngrok port"
+    required: true
+    default: "3389"
+  username:
+    description: "Windows username"
+    required: true
+    default: "runneradmin"
+  password:
+    description: "Windows password"
+    required: true
+    default: "@cyb3rking"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install ngrok
+      shell: pwsh
+      run: choco install ngrok
+    - name: Auth
+      shell: pwsh
+      run: ngrok config add-authtoken ${{ inputs.ngrok-auth-token }}
+    - name: Enable TS
+      shell: pwsh
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+      shell: pwsh
+    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+      shell: pwsh
+    - run: Set-LocalUser -Name "${{ inputs.username }}" -Password (ConvertTo-SecureString -AsPlainText "${{ inputs.password }}" -Force)
+      shell: pwsh
+    - name: Create Tunnel
+      shell: pwsh
+      run: ngrok tcp --log stdout ${{ inputs.ngrok-port }}
